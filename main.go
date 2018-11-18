@@ -23,6 +23,7 @@ func getNumberOfPage(group string) int {
 		// there is no "ul.pagination li" element for some group only have 1 page
 		return 1
 	}
+
 	// -2 is to deduct "上一頁" and "下一頁" element
 	return l - 2
 }
@@ -65,9 +66,9 @@ func getArticleURLs(group string) <-chan string {
 }
 
 type article struct {
-	title      string
-	url        string
-	subscriber int
+	title string
+	url   string
+	nSub  int // number of subscribers
 }
 
 func getArticles(urls <-chan string) []article {
@@ -84,12 +85,12 @@ func getArticles(urls <-chan string) []article {
 
 			title := doc.Find(".qa-list__title.qa-list__title--ironman").Text()
 			title = strings.TrimRight(strings.TrimSpace(title), " 系列")
-			amount, _ := strconv.Atoi(doc.Find("span.subscription-amount").Text())
+			nSub, _ := strconv.Atoi(doc.Find("span.subscription-amount").Text())
 
 			info := article{
-				title:      title,
-				url:        url,
-				subscriber: amount,
+				title: title,
+				url:   url,
+				nSub:  nSub,
 			}
 
 			m.Lock()
@@ -112,10 +113,10 @@ func print(articles []article, group string) {
 			// break to next line if title is too long
 			title = title[:limit] + "\n" + title[limit:]
 		}
-		if info.subscriber >= 10 {
+		if info.nSub >= 10 {
 			// only print articles whose number af amount >= 10
-			subscriber := strconv.Itoa(info.subscriber)
-			data = append(data, []string{"\n" + tablewriter.Pad(subscriber, " ", 4), title + "\n\n" + info.url})
+			nSub := strconv.Itoa(info.nSub)
+			data = append(data, []string{"\n" + tablewriter.Pad(nSub, " ", 4), title + "\n\n" + info.url})
 		}
 	}
 
@@ -138,7 +139,7 @@ func main() {
 
 		// sort by number of subscriber
 		sort.SliceStable(articles, func(i, j int) bool {
-			return articles[i].subscriber > articles[j].subscriber
+			return articles[i].nSub > articles[j].nSub
 		})
 
 		print(articles, group)
