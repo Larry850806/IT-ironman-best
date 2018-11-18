@@ -17,7 +17,6 @@ func getNumberOfPage(group string) int {
 	url := fmt.Sprintf("%s?group=%s", baseURL, group)
 
 	doc, _ := goquery.NewDocument(url)
-
 	l := doc.Find("ul.pagination li").Length()
 
 	if l == 0 {
@@ -29,14 +28,14 @@ func getNumberOfPage(group string) int {
 }
 
 func getArticleURLs(group string) <-chan string {
-	nURL := getNumberOfPage(group)
+	nPage := getNumberOfPage(group)
 	articleURLs := make(chan string)
 
 	var wg sync.WaitGroup
-	wg.Add(nURL)
+	wg.Add(nPage)
 
 	baseURL := "https://ithelp.ithome.com.tw/ironman/signup/list"
-	for i := 1; i <= nURL; i++ {
+	for i := 1; i <= nPage; i++ {
 		go func(i int) {
 			defer wg.Done()
 
@@ -120,6 +119,7 @@ func print(articles []article, group string) {
 		}
 	}
 
+	// set table format
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"訂閱數", "主題（" + group + "）"})
 	table.SetRowLine(true)
