@@ -87,14 +87,14 @@ func getArticles(urls <-chan string) []article {
 			title = strings.TrimRight(strings.TrimSpace(title), " 系列")
 			nSub, _ := strconv.Atoi(doc.Find("span.subscription-amount").Text())
 
-			info := article{
+			a := article{
 				title: title,
 				url:   url,
 				nSub:  nSub,
 			}
 
 			m.Lock()
-			articles = append(articles, info)
+			articles = append(articles, a)
 			m.Unlock()
 		}(url)
 	}
@@ -106,17 +106,17 @@ func getArticles(urls <-chan string) []article {
 
 func print(articles []article, group string) {
 	data := [][]string{}
-	for _, info := range articles {
-		title := info.title
-		limit := 119
-		if len(title) > 119 {
+	for _, a := range articles {
+		title := a.title
+		lenLimit := 119
+		if len(title) > lenLimit {
 			// break to next line if title is too long
-			title = title[:limit] + "\n" + title[limit:]
+			title = title[:lenLimit] + "\n" + title[lenLimit:]
 		}
-		if info.nSub >= 10 {
+		if a.nSub >= 10 {
 			// only print articles whose number af amount >= 10
-			nSub := strconv.Itoa(info.nSub)
-			data = append(data, []string{"\n" + tablewriter.Pad(nSub, " ", 4), title + "\n\n" + info.url})
+			nSub := strconv.Itoa(a.nSub)
+			data = append(data, []string{"\n" + tablewriter.Pad(nSub, " ", 4), title + "\n\n" + a.url})
 		}
 	}
 
